@@ -1,18 +1,23 @@
+const MODELS = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash-lite"];
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export default async (req) => {
-    if (req.method !== "POST") {
-        return new Response(JSON.stringify({ error: "Use POST" }), {
-            status: 405,
+    const json = (obj, status = 200) =>
+        new Response(JSON.stringify(obj), {
+            status: status,
             headers: { "Content-Type": "application/json" }
         });
+
+    if (req.method !== "POST") {
+        return json({ error: "Use POST" }, 405);
     }
 
     const body = await req.json();
     const list = Array.isArray(body.transactions) ? body.transactions.slice(-50) : [];
 
     if (list.length === 0) {
-        return new Response(JSON.stringify({ insight: "Add some transactions first." }), {
-            headers: { "Content-Type": "application/json" }
-        });
+        return json({ insight: "Add some transactions first." });
     }
 
     const lines = list.map(function (t) {
@@ -25,32 +30,39 @@ export default async (req) => {
         "\n\nGive 3 short, practical insights about their spending and savings. " +
         "Use simple words, and keep the whole answer under 100 words.";
 
-    const response = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-goog-api-key": process.env.GEMINI_API_KEY
-            },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
+    let lastError = null;
+
+    for (const model of MODELS) {
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": process.env.GEMINI_API_KEY
+                },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No answer came back.";
+            return json({ insight: text });
         }
-    );
 
-    const data = await response.json();
+        lastError = { model: model, status: response.status, details: data };
 
-    if (!response.ok) {
-        return new Response(JSON.stringify({ error: "AI request failed", details: data }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" }
-        });
+        // Busy or rate limited: try the next model. Anything else: stop.
+        if (response.status !== 503 && response.status !== 429) {
+            break;
+        }
+
+        await wait(1000);
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No answer came back.";
-
-    return new Response(JSON.stringify({ insight: text }), {
-        headers: { "Content-Type": "application/json" }
-    });
+    return json({ error: "AI request failed", details: lastError }, 500);
 };
