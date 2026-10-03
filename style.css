@@ -140,3 +140,8 @@ tr.expense {
     max-width: 350px;
     margin: 0 auto;
 }
+#insights-output {
+    white-space: pre-wrap;
+    margin-top: 15px;
+    line-height: 1.5;
+}
