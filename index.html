@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTrack</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body> 
+   <header>
+    <h1>FinTrack - Personal Finance Tracker</h1>
+    <p>Track your income, expenses and savings.</p>
+   </header>
+
+   <main>
+      <section>
+        <h2>Your Financial Overview</h2>
+    <p>Total Income: ₹<span id="total-income">0</span></p>
+    <p>Total Expenses: ₹<span id="total-expenses">0</span></p>
+    <p>Total Savings: ₹<span id="total-savings">0</span></p>
+      </section>
+      <section> 
+         <h2>Add Transaction</h2>
+
+         <form id="transaction-form">
+            <label for="description">Description:</label>
+            <input type="text" id="description" placeholder="Salary, Groceries">
+            <br><br>
+
+            <label for="amount">Amount (₹):</label>
+            <input type="number" id="amount" placeholder="500">
+            <br><br>
+            <label for="type">Type:</label>
+            <select id="type">
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+            </select>
+            <br><br>
+            <label for="category">Category:</label>
+            <select id="category">
+                <option value="Salary">Salary</option>
+                <option value="Food">Food</option>
+                <option value="Travel">Travel</option>
+                <option value="Bills">Bills</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Other">Other</option>
+            </select>
+            <br><br>
+            <p id="error-message"></p>
+            <button type="submit">Add</button>
+         </form>
+      </section>
+      <section>
+          <h2>Spending by Category</h2>
+          <p id="chart-empty">Add some expenses to see your chart.</p>
+          <div class="chart-box">
+              <canvas id="spending-chart"></canvas>
+          </div>
+      </section>
+      <section>
+        <h2>Transaction History</h2>
+        <label for="filter">Show:</label>
+        <select id="filter">
+           <option value="all">All</option>
+           <option value="income">Income</option>
+           <option value="expense">Expense</option>
+        </select>
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="transaction-list">
+            </tbody>
+        </table>
+      </section>
+   </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="script.js"></script>  
+<script src="script.js"></script>
+</body>
+</html>
